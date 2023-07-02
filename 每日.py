@@ -11,7 +11,7 @@ year=date01.year
 data=year*10000+date01.month*100+date01.day
 
 
-def get_ftures_k_history(secid: str, beg: str = '20220101', end: str = '20500101', klt: int = 101, fqt: int = 1) -> pd.DataFrame:
+def get_ftures_k_history(secid: str, beg: str = '20200101', end: str = '20500101', klt: int = 101, fqt: int = 1) -> pd.DataFrame:
     '''
     获取k线数据
 

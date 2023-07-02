@@ -1,4 +1,3 @@
-
 #define  _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <math.h>
@@ -6,11 +5,12 @@
 #include <Windows.h>
 #include <time.h>
 
-int Get_Data();
+int Get_Data(class Kline* kLine, int Data_Length);
 int Get_Data_Length(const char* FileName);
 int conversion();
 int SquareTen(int x); //进行10的平方
 int date(int a[]); //用于转换时间格式
+int GetsNumOfInteger(int num);//获取整数位数
 int Judging_Trends(class Kline* kLine, int Data_Length);
 int counter_first = 0;
 char X[20] = { 0 };
@@ -22,6 +22,7 @@ public:
 	int end;     //收盘
 	int max;     //最高
 	int min;     //最低
+	int averageValue;//最高最低平均值
 	int vol;     //成交量
 	long terr;   //成交额
 	float aem;   //振幅
@@ -36,6 +37,7 @@ public:
 		end = 0;
 		max = 0;
 		min = 0;
+		averageValue = 0;
 		vol = 0;
 		terr = 0;
 		aem = 0;
@@ -48,11 +50,15 @@ public:
 int main()
 {
 	system("python 每日.py");
-	Get_Data();
+	int Data_Length = Get_Data_Length("today_s.csv") - 1;
+	class Kline* kLine = (class Kline*)malloc(sizeof(class Kline) * Data_Length);
+	if (kLine == NULL)
+		return 0;
+	Get_Data(kLine, Data_Length);
 	
 	double a, b, c;
 	double First_Departure_Target, Second_Departure_Target, Third_Departure_Target;
-	puts("请输入b点，a点,c点");
+	printf("请输入b点，a点,c点");
 	scanf_s("%lf%lf%lf", &b, &a, &c);
 	First_Departure_Target = fabs(b - a) + fabs(b - c) * 0.618 + c;
 	Second_Departure_Target = fabs(b - a) + fabs(b - c) * 1 + c;
@@ -63,21 +69,16 @@ int main()
 	return 0;
 }
 
-int Get_Data()
+int Get_Data(class Kline* kLine, int Data_Length)
 {
-	
-	int Data_Length = Get_Data_Length("today_s.csv") - 1;
+
 	int days[3];
 
 	FILE* fp=fopen("today_s.csv","r");
-	class Kline* kLine = (class Kline*)malloc(sizeof(class Kline) * Data_Length);
-	if (kLine == NULL)
-		return 0;
 
-	for (int i = 0; i < 91; i++)
-	{
-		fgetc(fp);
-	}
+
+
+	fseek(fp, 91, SEEK_SET);//跳过文件前91字节
 	for (int H = 0; H < Data_Length; H++)
 	{
 		for (int i = 0; i < 3; i++)
@@ -127,9 +128,10 @@ int Get_Data()
 						break;
 					}
 				}
-				//kLine[H].terr = S();
+				//kLine[H].terr = conversion();
 				break;
 			}
+			kLine[H].averageValue = (kLine[H].max + kLine[H].min) / 2;
 		}
 
 		for (int i = 0; i < 20; i++)
@@ -260,12 +262,12 @@ int Slope(int x1, int y1, int x2, int y2)
 }
 
 
-int findMax(class Kline arr[], int size) {
-	int max = arr[0].max ; // 假设数组的第一个元素是最大值
+int findAverageValueMax(class Kline arr[], int size) {
+	int max = arr[0].averageValue; // 假设数组的第一个元素是最大值
 	int MaxOrdinalNumber = 0;
 	for (int i = 1; i < size; i++) {
-		if (arr[i].max  > max) {
-			max = arr[i].max ; // 如果当前元素大于当前最大值，则更新最大值
+		if (arr[i].averageValue > max) {
+			max = arr[i].averageValue; // 如果当前元素大于当前最大值，则更新最大值
 			MaxOrdinalNumber = i;
 		}
 	}
@@ -273,12 +275,12 @@ int findMax(class Kline arr[], int size) {
 	return MaxOrdinalNumber;
 }
 
-int findMin(class Kline arr[], int size) {
-	int min = arr[0].max ; // 假设数组的第一个元素是最小值
+int findAverageValueMin(class Kline arr[], int size) {
+	int min = arr[0].averageValue; // 假设数组的第一个元素是最小值
 	int MinOrdinalNumber = 0;
 	for (int i = 1; i < size; i++) {
-		if (arr[i].max  < min) {
-			min = arr[i].max ; // 如果当前元素小于当前最小值，则更新最小值
+		if (arr[i].averageValue < min) {
+			min = arr[i].averageValue; // 如果当前元素小于当前最小值，则更新最小值
 			MinOrdinalNumber = i;
 		}
 	}
@@ -306,50 +308,96 @@ int getCurrentDate()
 int Judging_Trends(class Kline* kLine, int Data_Length)
 {
 	int count = 0;
-	int downFx, downFy;
+	int downFx = 0, downFy = 0;
 	int SlopeSum = 0;
-	int max = 0;
-	int min = 0;
+	int MaxLocation = 0;//储存最大值的位置
+	int MinLocation = 0;
+	int SubLowLocation = 0;
 	int time = getCurrentDate();
+
 	for (int i = 0; i < Data_Length ; i++)
 	{
 		if (kLine[i].day>time-100)
 		{
-			max = findMax(&kLine[i], Data_Length - i) + i;
+			MaxLocation = findAverageValueMax(&kLine[i], Data_Length - i) + i;
 			break;
+		}
+		else
+		{
+			MaxLocation = -1;
 		}
 	}
 	for (int i = 0; i < Data_Length; i++)
 	{
-		if (kLine[i].day > kLine[max].day - 600)
+		if (kLine[i].day > kLine[MaxLocation].day - 600)
 		{
-			min = findMin(&kLine[i], Data_Length - i) + i;
+			MinLocation = findAverageValueMin(&kLine[i], Data_Length - i) + i;
 			break;
-		}
-	}
-	for (int i = min; i < max-1; i++ )
-	{
-
-		if (kLine[i + 1].max - kLine[i].max < 0)
-		{
-			count++;
-			if (count=1)
-			{
-				downFx = kLine[i].day;
-				downFy = kLine[i].max;
-			}
-			if (count==5&&Slope(downFx,downFy, kLine[i].day, kLine[i].max)<-50)
-			{
-				break;
-			}
 		}
 		else
 		{
-			count = 0;
+			MinLocation = -1;
 		}
-		
-	}				
+	}
+	for (int i = 0; i < Data_Length; i++)
+	{
+		if (kLine[i].day > kLine[MaxLocation].day)
+		{
+			SubLowLocation = findAverageValueMin(&kLine[i], Data_Length - i) + i;
+			break;
+		}
+		else
+		{
+			SubLowLocation = -1;
+		}
+	}
 
+	
+	if (kLine[MaxLocation].day - kLine[MinLocation].day < 7 
+		|| kLine[SubLowLocation].day <= kLine[MaxLocation].day 
+		|| kLine[SubLowLocation].averageValue <= kLine[MaxLocation].averageValue
+		|| kLine[SubLowLocation].averageValue >= kLine[MinLocation].averageValue
+		|| SubLowLocation==-1)//判断是否符合上涨浪
+	{
+		return 0;
+	}
+	else
+	{
+		for (int i = MinLocation; i < MaxLocation - 1; i++)
+		{
+
+			if (kLine[i + 1].averageValue - kLine[i].averageValue < 0)
+			{
+				count++;
+				if (count == 1)
+				{
+					downFx = kLine[i].day;
+					downFy = kLine[i].averageValue;
+				}
+				if (count == 5 && Slope(downFx, downFy, kLine[i].day, kLine[i].averageValue) < -10)
+				{
+					break;
+				}
+			}
+			else
+			{
+				count = 0;
+			}
+
+		}
+	}
 	return 0;
+}
+
+int GetsNumOfInteger(int num)
+{
+	int temp = num / 10;
+	int NumOfInteger = 1;
+	while (temp > 0)
+	{
+		temp /= 10;
+		NumOfInteger++;
+	}
+	return NumOfInteger;
 }
 
