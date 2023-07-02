@@ -12,6 +12,7 @@ int SquareTen(int x); //进行10的平方
 int date(int a[]); //用于转换时间格式
 int GetsNumOfInteger(int num);//获取整数位数
 int Judging_Trends(class Kline* kLine, int Data_Length);
+int Judge_rising_wave(class Kline* kLine, int Data_Length, class rising_wave* rising);
 int counter_first = 0;
 char X[20] = { 0 };
 class Kline
@@ -46,6 +47,19 @@ public:
 		turn = 0;
 	}
 };
+class rising_wave
+{
+public:
+	int MaxLocation;//储存最大值的位置
+	int MinLocation ;
+	int SubLowLocation;
+	rising_wave()
+	{
+		MaxLocation = 0;
+		MinLocation = 0;
+		SubLowLocation = 0;
+	}
+};
 
 int main()
 {
@@ -55,7 +69,9 @@ int main()
 	if (kLine == NULL)
 		return 0;
 	Get_Data(kLine, Data_Length);
+	Judging_Trends(kLine, Data_Length);
 	
+	free(kLine);
 	double a, b, c;
 	double First_Departure_Target, Second_Departure_Target, Third_Departure_Target;
 	printf("请输入b点，a点,c点");
@@ -144,10 +160,10 @@ int Get_Data(class Kline* kLine, int Data_Length)
 			}
 		}
 	}
-	Judging_Trends(kLine, Data_Length);
 	fclose(fp);
 	return 1;
 }
+
 int Get_Data_Length(const char* FileName)
 {
 	FILE* fp = fopen(FileName, "r");
@@ -307,17 +323,26 @@ int getCurrentDate()
 
 int Judging_Trends(class Kline* kLine, int Data_Length)
 {
-	int count = 0;
-	int downFx = 0, downFy = 0;
-	int SlopeSum = 0;
+	class rising_wave* rising = (class rising_wave*)malloc(sizeof(class rising_wave));
+	if (Judge_rising_wave(kLine, Data_Length, rising) == 1)
+	{
+		
+	}
+	return 0;
+
+	
+}
+
+
+int Judge_rising_wave(class Kline* kLine, int Data_Length, class rising_wave* rising)
+{
 	int MaxLocation = 0;//储存最大值的位置
 	int MinLocation = 0;
 	int SubLowLocation = 0;
 	int time = getCurrentDate();
-
-	for (int i = 0; i < Data_Length ; i++)
+	for (int i = 0; i < Data_Length; i++)
 	{
-		if (kLine[i].day>time-100)
+		if (kLine[i].day > time - 100)
 		{
 			MaxLocation = findAverageValueMax(&kLine[i], Data_Length - i) + i;
 			break;
@@ -352,17 +377,22 @@ int Judging_Trends(class Kline* kLine, int Data_Length)
 		}
 	}
 
-	
-	if (kLine[MaxLocation].day - kLine[MinLocation].day < 7 
-		|| kLine[SubLowLocation].day <= kLine[MaxLocation].day 
-		|| kLine[SubLowLocation].averageValue <= kLine[MaxLocation].averageValue
-		|| kLine[SubLowLocation].averageValue >= kLine[MinLocation].averageValue
-		|| SubLowLocation==-1)//判断是否符合上涨浪
+	if (MaxLocation == -1 || MinLocation == -1 || SubLowLocation == -1)
+	{
+		return 0;
+	}
+
+	if (kLine[MaxLocation].day - kLine[MinLocation].day < 7
+		|| kLine[SubLowLocation].day <= kLine[MaxLocation].day
+		|| kLine[SubLowLocation].averageValue >= kLine[MaxLocation].averageValue
+		|| kLine[SubLowLocation].averageValue <= kLine[MinLocation].averageValue)//判断是否符合上涨浪
 	{
 		return 0;
 	}
 	else
 	{
+		int count = 0;
+		int downFx = 0, downFy = 0;
 		for (int i = MinLocation; i < MaxLocation - 1; i++)
 		{
 
@@ -376,7 +406,33 @@ int Judging_Trends(class Kline* kLine, int Data_Length)
 				}
 				if (count == 5 && Slope(downFx, downFy, kLine[i].day, kLine[i].averageValue) < -10)
 				{
-					break;
+					return 0;
+				}
+			}
+			else
+			{
+				count = 0;
+			}
+
+		}
+
+		count = 0;
+		downFx = 0;
+		downFy = 0;
+
+		for (int i = MaxLocation; i < SubLowLocation - 1; i++)
+		{
+			if (kLine[i + 1].averageValue > kLine[i].averageValue)
+			{
+				count++;
+				if (count == 1)
+				{
+					downFx = kLine[i].day;
+					downFy = kLine[i].averageValue;
+				}
+				if (count == 5 && Slope(downFx, downFy, kLine[i].day, kLine[i].averageValue) > 10)
+				{
+					return 0;
 				}
 			}
 			else
@@ -386,9 +442,11 @@ int Judging_Trends(class Kline* kLine, int Data_Length)
 
 		}
 	}
-	return 0;
+	rising->MaxLocation = MaxLocation;
+	rising->MinLocation = MinLocation;
+	rising->SubLowLocation = SubLowLocation;
+	return 1;
 }
-
 int GetsNumOfInteger(int num)
 {
 	int temp = num / 10;
