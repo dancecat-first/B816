@@ -5,10 +5,8 @@
 #include <Windows.h>
 #include <time.h>
 
-int Get_Data(class Kline* kLine, int Data_Length);
+void Get_Data(class Kline* kLine, int Data_Length);
 int Get_Data_Length(const char* FileName);
-int conversion();
-int SquareTen(int x); //进行10的平方
 int date(int a[]); //用于转换时间格式
 int GetsNumOfInteger(int num);//获取整数位数
 int Judging_Trends(class Kline* kLine, int Data_Length);
@@ -25,11 +23,11 @@ public:
 	int min;     //最低
 	int averageValue;//最高最低平均值
 	int vol;     //成交量
-	long terr;   //成交额
-	float aem;   //振幅
-	float swing; //涨跌幅
-	float rise;  //涨跌额
-	float turn;  //换手率
+	int terr;   //成交额
+	double aem;   //振幅
+	double swing; //涨跌幅
+	int rise;  //涨跌额
+	double turn;  //换手率
 	
 	Kline()
 	{
@@ -63,7 +61,7 @@ public:
 
 int main()
 {
-	system("python 每日.py");
+	//system("python 每日.py");
 	int Data_Length = Get_Data_Length("today_s.csv") - 1;
 	class Kline* kLine = (class Kline*)malloc(sizeof(class Kline) * Data_Length);
 	if (kLine == NULL)
@@ -85,83 +83,24 @@ int main()
 	return 0;
 }
 
-int Get_Data(class Kline* kLine, int Data_Length)
+void Get_Data(class Kline* kLine, int Data_Length)
 {
 
-	int days[3];
-
 	FILE* fp=fopen("today_s.csv","r");
-
-
 
 	fseek(fp, 91, SEEK_SET);//跳过文件前91字节
 	for (int H = 0; H < Data_Length; H++)
 	{
-		for (int i = 0; i < 3; i++)
-		{
-			fscanf(fp, "%d", &days[i]);
-		}
+		int days[3] = { 0 };
+		fscanf_s(fp, "%d-%d-%d", &days[0], &days[1], &days[2]);
 		kLine[H].day = date(days);
-		fscanf(fp, "%c", &X[1]);
 
-		for (int j = 0; j < 6; j++)
-		{
-			for (int i = 0; i < 20; i++)
-			{
-				fscanf(fp, "%c", &X[i]);
-				if (X[i] == ',')
-				{
-					counter_first = i;
-					X[i] = '\0';
-					break;
-				}
-			}
-
-			switch (j)
-			{
-			case 0:
-				kLine[H].first = conversion();
-				break;
-			case 1:
-				kLine[H].end = conversion();
-				break;
-			case 2:
-				kLine[H].max = conversion();
-				break;
-			case 3:
-				kLine[H].min = conversion();
-				break;
-			case 4:
-				kLine[H].vol = conversion();
-				break;
-			case 5:
-				for (int i = 0; i < 20; i++)
-				{
-					fscanf(fp, "%c", &X[i]);
-					if (X[i] == ',')
-					{
-						X[i] = '\0';
-						break;
-					}
-				}
-				//kLine[H].terr = conversion();
-				break;
-			}
-			kLine[H].averageValue = (kLine[H].max + kLine[H].min) / 2;
-		}
-
-		for (int i = 0; i < 20; i++)
-		{
-			fscanf(fp, "%c", &X[i]);
-			if (X[i] == '\n')
-			{
-				X[i] = '\0';
-				break;
-			}
-		}
+		fscanf_s(fp, ",%d,%d,%d,%d,%d,%d,%lf,%lf,%d,%lf\n", &kLine[H].first, &kLine[H].end, &kLine[H].max, &kLine[H].min, &kLine[H].vol, &kLine[H].terr,&kLine[H].aem, &kLine[H].swing, &kLine[H].rise, &kLine[H].turn);
+		kLine[H].averageValue = (kLine[H].max + kLine[H].min) / 2;
 	}
+
 	fclose(fp);
-	return 1;
+	return;
 }
 
 int Get_Data_Length(const char* FileName)
@@ -184,91 +123,10 @@ int Get_Data_Length(const char* FileName)
 	fclose(fp);
 	return Length;
 }
-int conversion()
-{
-	int i2 = 0;
-	int ret = 0;
-	int N = 0;
-	int i3 = 0;
-	for (int i = 0; i < counter_first; i++)
-	{
 
-		i2 = counter_first - i3 - 1;
-		switch (X[i])
-		{
-		case 48:
-			N = 0;
-			break;
-		case 49:
-			N = 1;
-			break;
-		case 50:
-			N = 2;
-			break;
-		case 51:
-			N = 3;
-			break;
-		case 52:
-			N = 4;
-			break;
-		case 53:
-			N = 5;
-			break;
-		case 54:
-			N = 6;
-			break;
-		case 55:
-			N = 7;
-			break;
-		case 56:
-			N = 8;
-			break;
-		case 57:
-			N = 9;
-			break;
-		default:
-			break;
-		}
-
-		if (i == 0)
-		{
-			ret = SquareTen(i2) * N;
-		}
-		else
-		{
-			ret += SquareTen(i2) * N;
-		}
-
-		i3++;
-	}
-	ret = ret + N;
-	return ret;
-}
-int SquareTen(int x) //进行10的平方
+int date(int date[3]) //用于转换时间格式
 {
-	int y = 10;
-	if (x != 0)
-	{
-		for (int i = 0; i < x - 1; i++)
-		{
-			y = y * 10;
-		}
-	}
-	else
-	{
-		y = 0;
-	}
-	return y;
-}
-int date(int a[]) //用于转换时间格式
-{
-	int a_1, a_2, a_3;
-	int day;
-	a_1 = *a;
-	a_2 = *(a + 1);
-	a_3 = *(a + 2);
-	day = a_1 * 10000 + abs(a_2) * 100 + abs(a_3);
-	return day;
+	return date[0] * 10000 + date[1] * 100 + date[2];
 }
 
 
@@ -326,11 +184,10 @@ int Judging_Trends(class Kline* kLine, int Data_Length)
 	class rising_wave* rising = (class rising_wave*)malloc(sizeof(class rising_wave));
 	if (Judge_rising_wave(kLine, Data_Length, rising) == 1)
 	{
-		
+		return 0;
 	}
 	return 0;
 
-	
 }
 
 
