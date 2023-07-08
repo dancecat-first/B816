@@ -1,29 +1,6 @@
-#define  _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#include <WINSOCK2.H> 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <sstream>
-#include<tchar.h>
-#include<WS2tcpip.h>
-#include<iostream>
-#include <windows.h>
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
-#include <Windows.h>
-#include <time.h>
 #include"Get_Data.h"
-
-
-#define BUFF_SIZE 1024
-#pragma warning(disable : 4075)
-#pragma warning(disable : 4996)
-#pragma warning(disable : 6387)
-#pragma comment(lib,"ws2_32.lib")
-#pragma comment(lib,"libssl.lib")
-#pragma comment(lib,"libcrypto.lib")
-
 
 int GetsNumOfInteger(int num);//获取整数位数
 int Judging_Trends(class Kline* kLine, int Data_Length);
@@ -44,7 +21,7 @@ public:
 		SubLowLocation = 0;
 	}
 };
-using namespace std;
+
 int main()
 {
 	char* url = (char*)malloc(sizeof(char) * 1024);
