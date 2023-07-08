@@ -1,50 +1,36 @@
 #define  _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <WINSOCK2.H> 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <sstream>
+#include<tchar.h>
+#include<WS2tcpip.h>
+#include<iostream>
+#include <windows.h>
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <Windows.h>
 #include <time.h>
+#include"Get_Data.h"
 
-void Get_Data(class Kline* kLine, int Data_Length);
-int Get_Data_Length(const char* FileName);
-int date(int a[]); //用于转换时间格式
+
+#define BUFF_SIZE 1024
+#pragma warning(disable : 4075)
+#pragma warning(disable : 4996)
+#pragma warning(disable : 6387)
+#pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib,"libssl.lib")
+#pragma comment(lib,"libcrypto.lib")
+
+
 int GetsNumOfInteger(int num);//获取整数位数
 int Judging_Trends(class Kline* kLine, int Data_Length);
 int Judge_rising_wave(class Kline* kLine, int Data_Length, class rising_wave* rising);
 int counter_first = 0;
 char X[20] = { 0 };
-class Kline
-{
-public:
-	int day;
-	int first;   //开盘
-	int end;     //收盘
-	int max;     //最高
-	int min;     //最低
-	int averageValue;//最高最低平均值
-	int vol;     //成交量
-	int terr;   //成交额
-	double aem;   //振幅
-	double swing; //涨跌幅
-	int rise;  //涨跌额
-	double turn;  //换手率
-	
-	Kline()
-	{
-		day = 0;
-		first = 0;
-		end = 0;
-		max = 0;
-		min = 0;
-		averageValue = 0;
-		vol = 0;
-		terr = 0;
-		aem = 0;
-		swing = 0;
-		rise = 0;
-		turn = 0;
-	}
-};
+
 class rising_wave
 {
 public:
@@ -58,19 +44,35 @@ public:
 		SubLowLocation = 0;
 	}
 };
-
+using namespace std;
 int main()
 {
-	//system("python 每日.py");
-	int Data_Length = Get_Data_Length("today_s.csv") - 1;
+	char* url = (char*)malloc(sizeof(char) * 1024);
+	char* data = (char*)malloc(sizeof(char) * 1024 * 1024);
+	urlencode("115.SR401", 20000101, getCurrentDate(), 101, 1, url);
+	request(url, data);
+	free(url);
+
+	int Data_Length = Get_Data_Length(data);
+	if (Data_Length == -1)
+		return 0;
 	class Kline* kLine = (class Kline*)malloc(sizeof(class Kline) * Data_Length);
 	if (kLine == NULL)
 		return 0;
-	Get_Data(kLine, Data_Length);
-	Judging_Trends(kLine, Data_Length);
+	for (int i = 0; i < Data_Length; i++)
+	{
+		kLine[i].initKline();
+	}
 	
+	if (kLine == NULL)
+		return 0;
+	Get_Data(kLine, Data_Length, data);
+	free(data);
+	
+	Judging_Trends(kLine, Data_Length);
+
 	free(kLine);
-	double a, b, c;
+	/*double a, b, c;
 	double First_Departure_Target, Second_Departure_Target, Third_Departure_Target;
 	printf("请输入b点，a点,c点");
 	scanf_s("%lf%lf%lf", &b, &a, &c);
@@ -79,54 +81,8 @@ int main()
 	Third_Departure_Target = fabs(b - a) + fabs(b - c) * 1.382 + c;
 	printf("第一离场目标为：%f\n", First_Departure_Target);
 	printf("第二离场目标为：%f\n", Second_Departure_Target);
-	printf("第三离场目标为：%f\n", Third_Departure_Target);
+	printf("第三离场目标为：%f\n", Third_Departure_Target);*/
 	return 0;
-}
-
-void Get_Data(class Kline* kLine, int Data_Length)
-{
-
-	FILE* fp=fopen("today_s.csv","r");
-
-	fseek(fp, 91, SEEK_SET);//跳过文件前91字节
-	for (int H = 0; H < Data_Length; H++)
-	{
-		int days[3] = { 0 };
-		fscanf_s(fp, "%d-%d-%d", &days[0], &days[1], &days[2]);
-		kLine[H].day = date(days);
-
-		fscanf_s(fp, ",%d,%d,%d,%d,%d,%d,%lf,%lf,%d,%lf\n", &kLine[H].first, &kLine[H].end, &kLine[H].max, &kLine[H].min, &kLine[H].vol, &kLine[H].terr,&kLine[H].aem, &kLine[H].swing, &kLine[H].rise, &kLine[H].turn);
-		kLine[H].averageValue = (kLine[H].max + kLine[H].min) / 2;
-	}
-
-	fclose(fp);
-	return;
-}
-
-int Get_Data_Length(const char* FileName)
-{
-	FILE* fp = fopen(FileName, "r");
-	int Length = 0;
-	char* c = (char*)malloc(sizeof(char));
-	if (c != NULL)
-	{
-		while (*c != EOF)
-		{
-			*c = fgetc(fp);
-			if (*c == '\n')
-			{
-				Length++;
-			}
-		}
-	}
-	free(c);
-	fclose(fp);
-	return Length;
-}
-
-int date(int date[3]) //用于转换时间格式
-{
-	return date[0] * 10000 + date[1] * 100 + date[2];
 }
 
 
@@ -134,7 +90,6 @@ int Slope(int x1, int y1, int x2, int y2)
 {
 	return (y1 - y2) / (x2 - x1);
 }
-
 
 int findAverageValueMax(class Kline arr[], int size) {
 	int max = arr[0].averageValue; // 假设数组的第一个元素是最大值
@@ -162,22 +117,6 @@ int findAverageValueMin(class Kline arr[], int size) {
 	return MinOrdinalNumber;
 }
 
-int getCurrentDate() 
-{
-	int year = 0;
-	int month = 0;
-	int day = 0;
-	time_t currentTime;
-	time(&currentTime);
-
-	struct tm* localTime = localtime(&currentTime);
-
-	year = localTime->tm_year + 1900;
-	month = localTime->tm_mon + 1;
-	day = localTime->tm_mday;
-
-	return (year * 10000 + month * 100 + day);
-}
 
 int Judging_Trends(class Kline* kLine, int Data_Length)
 {
@@ -186,7 +125,7 @@ int Judging_Trends(class Kline* kLine, int Data_Length)
 	{
 		return 0;
 	}
-	return 0;
+	return 1;
 
 }
 
@@ -315,4 +254,3 @@ int GetsNumOfInteger(int num)
 	}
 	return NumOfInteger;
 }
-
