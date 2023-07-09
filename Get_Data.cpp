@@ -260,9 +260,13 @@ int getCurrentDate()
 
 	struct tm* localTime = localtime(&currentTime);
 
-	year = localTime->tm_year + 1900;
-	month = localTime->tm_mon + 1;
-	day = localTime->tm_mday;
+	// 提取年份、月份和日期
+    // localtime 函数返回的年份的基准是 1900，所以需要加上 1900
+    // 月份从 0 开始计数，所以需要加上 1
+    year = localTime->tm_year + 1900;
+    month = localTime->tm_mon + 1;
+    day = localTime->tm_mday;
 
-	return (year * 10000 + month * 100 + day);
+    // 返回格式化后的日期值
+    return (year * 10000 + month * 100 + day);
 }
