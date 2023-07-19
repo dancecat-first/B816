@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include"Get_Data.h"
 
@@ -24,8 +25,9 @@ public:
 
 int main()
 {
-	char* url = (char*)malloc(sizeof(char) * 1024);
-	char* data = (char*)malloc(sizeof(char) * 1024 * 1024);
+	clock_t start_time = clock();  // 记录初始时间
+	char* url = (char*)calloc(1024, sizeof(char));
+	char* data = (char*)calloc(1024 * 1024, sizeof(char));
 	urlencode("115.SR401", 20000101, getCurrentDate(), 101, 1, url);
 	request(url, data);
 	free(url);
@@ -33,13 +35,9 @@ int main()
 	int Data_Length = Get_Data_Length(data);
 	if (Data_Length == -1)
 		return 0;
-	class Kline* kLine = (class Kline*)malloc(sizeof(class Kline) * Data_Length);
+	class Kline* kLine = (class Kline*)calloc(Data_Length, sizeof(class Kline));
 	if (kLine == NULL)
 		return 0;
-	for (int i = 0; i < Data_Length; i++)
-	{
-		kLine[i].initKline();
-	}
 	
 	if (kLine == NULL)
 		return 0;
@@ -49,6 +47,13 @@ int main()
 	Judging_Trends(kLine, Data_Length);
 
 	free(kLine);
+
+	clock_t end_time = clock();  // 记录结束时间
+
+	double total_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;  // 计算运行时长，单位为秒
+
+	printf("程序运行时长: %.2f 秒\n", total_time);
+
 	/*double a, b, c;
 	double First_Departure_Target, Second_Departure_Target, Third_Departure_Target;
 	printf("请输入b点，a点,c点");
@@ -97,7 +102,7 @@ int findAverageValueMin(class Kline arr[], int size) {
 
 int Judging_Trends(class Kline* kLine, int Data_Length)
 {
-	class rising_wave* rising = (class rising_wave*)malloc(sizeof(class rising_wave));
+	class rising_wave* rising = (class rising_wave*)calloc(1, sizeof(class rising_wave));
 	if (Judge_rising_wave(kLine, Data_Length, rising) == 1)
 	{
 		return 0;

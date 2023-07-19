@@ -128,7 +128,7 @@ int request(char url[1024], char data[1024 * 1024])
 		cout << "SSL write error !";
 		return -1;
 	}
-	char* rec = (char*)malloc(sizeof(char) * 1024 * 1024);
+	char* rec = (char*)calloc(1024 * 1024, sizeof(char));
 	int start = 0;
 	if (rec == NULL)
 		return 0;
@@ -139,6 +139,7 @@ int request(char url[1024], char data[1024 * 1024])
 	rec[start] = '\n';
 	rec[start + 1] = 0;
 	strncpy(data, strstr(rec, "\"klines\":[") + strlen("\"klines\":["), strlen(strstr(rec, "\"klines\":[") + strlen("\"klines\":[")) + 1);
+	data[1024 * 1024 - 1] = '\0';//±ÜÃâ³öÏÖÃ»ÓĞÎª×Ö·û´®¡°data¡±Ìí¼Ó×Ö·û´®ÁãÖÕÖ¹·û
 	data[strlen(data) - 4] = '\0';
 	
 	free(rec);//ÊÍ·ÅÄÚ´æ
