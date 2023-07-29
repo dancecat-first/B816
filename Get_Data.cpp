@@ -172,12 +172,54 @@ void Get_Data(class Kline* kLine, int Data_Length, char* data)
 		kLine[H].averageValue = (kLine[H].max + kLine[H].min) / 2;
 	}
 	PerformDMA(kLine, Data_Length);
-	
+	PreferredRandomIndicator(kLine, Data_Length);
 	return;
 }
 
-void PerformDMA(class Kline* kLine, int Data_Length)
+
+void PreferredRandomIndicator(class Kline* kLine, int Data_Length)//计算首选随机指标
 {
+	const int N = 8;
+	double* temp = (double*)calloc(Data_Length, sizeof(double));
+	if (temp == NULL)
+		return;
+	for (int i = 0; i < Data_Length; i++)
+	{
+		if (i >= N)
+		{
+			int lowestLow = kLine[i - N].min;  // 假设数组的第一个元素是最小值
+			int highestHigh = kLine[i - N].max;
+			for (int j = (i - N) + 1; j <= i; ++j)
+			{
+				if (kLine[j].min < lowestLow)
+					lowestLow = kLine[j].min;
+				if (kLine[j].max > highestHigh)
+					highestHigh = kLine[j].max;
+			}
+			temp[i]= ((double)(kLine[i].end - lowestLow) / (double)(highestHigh - lowestLow)) * 100;
+		}
+	}
+
+	for (int i = 0; i < Data_Length; i++)
+	{
+		if (i == N + 3)
+			kLine[i].RandomIndicatorK = (temp[i] + temp[i - 1] + temp[i - 2]) / 3;
+		else if (i > N + 3)
+			kLine[i].RandomIndicatorK = kLine[i - 1].RandomIndicatorK + (temp[i] - kLine[i - 1].RandomIndicatorK) / 3;
+	}
+	for (int i = 0; i < Data_Length; i++)
+	{
+		if (i == N + 6)
+			kLine[i].RandomIndicatorD = (kLine[i].RandomIndicatorK + kLine[i-1].RandomIndicatorK + kLine[i-2].RandomIndicatorK) / 3;
+		else if (i > N + 6)
+			kLine[i].RandomIndicatorD = kLine[i - 1].RandomIndicatorD + (kLine[i].RandomIndicatorK - kLine[i - 1].RandomIndicatorD) / 3;
+	}
+	free(temp);
+}
+
+void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线
+{
+	/*先进行计算简单移动平均线，再进行置换*/
 	for (int H = 0; H < Data_Length; H++)
 	{
 		int sum = 0;

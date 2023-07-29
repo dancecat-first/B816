@@ -13,7 +13,7 @@ class rising_wave
 {
 public:
 	int MaxLocation;//储存最大值的位置
-	int MinLocation ;
+	int MinLocation;
 	int SubLowLocation;
 	rising_wave()
 	{
