@@ -1,6 +1,18 @@
 #pragma once
 #ifndef GET_DATA_H
 #define	GET_DATA_H
+struct MACD
+{
+	double EMA1;
+	double EMA2;
+	double MACD;
+	double SignalLine;
+};
+struct RandomIndicator
+{
+	double RandomIndicatorK;//首选随机指标K
+	double RandomIndicatorD;//首选随机指标D
+};
 class Kline
 {
 public:
@@ -14,8 +26,8 @@ public:
 	int MA3_3;
 	int MA7_5;
 	int MA25_5;
-	double RandomIndicatorK;//首选随机指标K
-	double RandomIndicatorD;//首选随机指标D
+	struct RandomIndicator KD;
+	struct MACD macd;
 	int vol;     //成交量
 	long terr;   //成交额
 	double aem;   //振幅
@@ -32,4 +44,5 @@ int Get_Data_Length(const char* str);
 int getCurrentDate();
 void PerformDMA(class Kline* kLine, int Data_Length);
 void PreferredRandomIndicator(class Kline* kLine, int Data_Length);//计算首选随机指标
+void CalculateMACD(class Kline* kLine, int Data_Length);//计算MACD
 #endif // !GET_DATA_H

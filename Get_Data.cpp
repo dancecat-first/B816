@@ -173,6 +173,7 @@ void Get_Data(class Kline* kLine, int Data_Length, char* data)
 	}
 	PerformDMA(kLine, Data_Length);
 	PreferredRandomIndicator(kLine, Data_Length);
+	CalculateMACD(kLine, Data_Length);
 	return;
 }
 
@@ -203,20 +204,34 @@ void PreferredRandomIndicator(class Kline* kLine, int Data_Length)//计算首选随机
 	for (int i = 0; i < Data_Length; i++)
 	{
 		if (i == N + 3)
-			kLine[i].RandomIndicatorK = (temp[i] + temp[i - 1] + temp[i - 2]) / 3;
+			kLine[i].KD.RandomIndicatorK = (temp[i] + temp[i - 1] + temp[i - 2]) / 3;
 		else if (i > N + 3)
-			kLine[i].RandomIndicatorK = kLine[i - 1].RandomIndicatorK + (temp[i] - kLine[i - 1].RandomIndicatorK) / 3;
+			kLine[i].KD.RandomIndicatorK = kLine[i - 1].KD.RandomIndicatorK + (temp[i] - kLine[i - 1].KD.RandomIndicatorK) / 3;
 	}
 	for (int i = 0; i < Data_Length; i++)
 	{
 		if (i == N + 6)
-			kLine[i].RandomIndicatorD = (kLine[i].RandomIndicatorK + kLine[i-1].RandomIndicatorK + kLine[i-2].RandomIndicatorK) / 3;
+			kLine[i].KD.RandomIndicatorD = (kLine[i].KD.RandomIndicatorK + kLine[i-1].KD.RandomIndicatorK + kLine[i-2].KD.RandomIndicatorK) / 3;
 		else if (i > N + 6)
-			kLine[i].RandomIndicatorD = kLine[i - 1].RandomIndicatorD + (kLine[i].RandomIndicatorK - kLine[i - 1].RandomIndicatorD) / 3;
+			kLine[i].KD.RandomIndicatorD = kLine[i - 1].KD.RandomIndicatorD + (kLine[i].KD.RandomIndicatorK - kLine[i - 1].KD.RandomIndicatorD) / 3;
 	}
 	free(temp);
 }
 
+void CalculateMACD(class Kline* kLine, int Data_Length)//计算MACD
+{
+	kLine[0].macd.EMA1 = kLine[0].end;
+	kLine[0].macd.EMA2 = kLine[0].end;
+	kLine[0].macd.MACD = 0;
+	kLine[0].macd.SignalLine = 0;
+	for (int i = 1; i < Data_Length; i++)
+	{
+		kLine[i].macd.EMA1 = kLine[i - 1].macd.EMA1 + (2.0 / 13) * (kLine[i].end - kLine[i - 1].macd.EMA1);
+		kLine[i].macd.EMA2 = kLine[i - 1].macd.EMA2 + (2.0 / 27) * (kLine[i].end - kLine[i - 1].macd.EMA2);
+		kLine[i].macd.MACD = kLine[i].macd.EMA1 - kLine[i].macd.EMA2;
+		kLine[i].macd.SignalLine = kLine[i - 1].macd.MACD + (2.0 / 10) * (kLine[i].macd.MACD - kLine[i - 1].macd.MACD);
+	}
+}
 void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线
 {
 	/*先进行计算简单移动平均线，再进行置换*/

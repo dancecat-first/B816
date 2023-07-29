@@ -44,7 +44,7 @@ int main()
 	Get_Data(kLine, Data_Length, data);
 	free(data);
 	
-	Judging_Trends(kLine, Data_Length);
+	//Judging_Trends(kLine, Data_Length);
 
 	free(kLine);
 
