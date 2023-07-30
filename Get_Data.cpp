@@ -226,10 +226,10 @@ void CalculateMACD(class Kline* kLine, int Data_Length)//计算MACD
 	kLine[0].macd.SignalLine = 0;
 	for (int i = 1; i < Data_Length; i++)
 	{
-		kLine[i].macd.EMA1 = kLine[i - 1].macd.EMA1 + (2.0 / 13) * (kLine[i].end - kLine[i - 1].macd.EMA1);
-		kLine[i].macd.EMA2 = kLine[i - 1].macd.EMA2 + (2.0 / 27) * (kLine[i].end - kLine[i - 1].macd.EMA2);
+		kLine[i].macd.EMA1 = kLine[i - 1].macd.EMA1 + 0.213 * (kLine[i].end - kLine[i - 1].macd.EMA1);
+		kLine[i].macd.EMA2 = kLine[i - 1].macd.EMA2 + 0.108 * (kLine[i].end - kLine[i - 1].macd.EMA2);
 		kLine[i].macd.MACD = kLine[i].macd.EMA1 - kLine[i].macd.EMA2;
-		kLine[i].macd.SignalLine = kLine[i - 1].macd.MACD + (2.0 / 10) * (kLine[i].macd.MACD - kLine[i - 1].macd.MACD);
+		kLine[i].macd.SignalLine = kLine[i - 1].macd.MACD + 0.199 * (kLine[i].macd.MACD - kLine[i - 1].macd.MACD);
 	}
 }
 void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线
