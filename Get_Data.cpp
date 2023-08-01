@@ -138,11 +138,8 @@ int request(char url[1024], char data[1024 * 1024])
 	}
 	rec[start] = '\n';
 	rec[start + 1] = 0;
-	strncpy(data, strstr(rec, "\"klines\":[") + strlen("\"klines\":["), strlen(strstr(rec, "\"klines\":[") + strlen("\"klines\":[")) + 1);
-	data[1024 * 1024 - 1] = '\0';//避免出现没有为字符串“data”添加字符串零终止符
-	data[strlen(data) - 4] = '\0';
 	
-	free(rec);//释放内存
+
 	//关闭SSL套接字 
 	SSL_shutdown(ssl);
 	//释放SSL套接字 
@@ -152,6 +149,17 @@ int request(char url[1024], char data[1024 * 1024])
 
 	closesocket(client);
 	WSACleanup();
+	if (strlen(rec) > 359)
+	{
+		strncpy(data, strstr(rec, "\"klines\":[") + strlen("\"klines\":["), strlen(strstr(rec, "\"klines\":[") + strlen("\"klines\":[")) + 1);
+		data[1024 * 1024 - 1] = '\0';//避免出现没有为字符串“data”添加字符串零终止符
+		data[strlen(data) - 4] = '\0';
+	}
+	else {
+		free(rec);//释放内存
+		return -1;
+	}
+	free(rec);//释放内存
 	return 0;
 }
 
@@ -182,8 +190,10 @@ void PreferredRandomIndicator(class Kline* kLine, int Data_Length)//计算首选随机
 {
 	const int N = 8;
 	double* temp = (double*)calloc(Data_Length, sizeof(double));
-	if (temp == NULL)
+	if (temp == NULL) {
+		printf("temp == NULL");
 		return;
+	}
 	for (int i = 0; i < Data_Length; i++)
 	{
 		if (i >= N)
@@ -238,9 +248,9 @@ void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线
 	for (int H = 0; H < Data_Length; H++)
 	{
 		int sum = 0;
-		if (H >= 3) {
+		if (H >= (3-1)) {
 			sum = 0;
-			for (int i = 1; i <= 3; i++)
+			for (int i = 0; i < 3; i++)
 			{
 				sum += kLine[H - i].end;
 			}
@@ -249,9 +259,9 @@ void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线
 		else
 			kLine[H].MA3_3 = 0;
 
-		if (H >= 7) {
+		if (H >= (7-1)) {
 			sum = 0;
-			for (int i = 1; i <= 7; i++)
+			for (int i = 0; i < 7; i++)
 			{
 				sum += kLine[H - i].end;
 			}
@@ -260,9 +270,9 @@ void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线
 		else
 			kLine[H].MA7_5 = 0;
 
-		if (H >= 25) {
+		if (H >= (25-1)) {
 			sum = 0;
-			for (int i = 1; i <= 25; i++)
+			for (int i = 0; i < 25; i++)
 			{
 				sum += kLine[H - i].end;
 			}
@@ -294,6 +304,7 @@ void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线
 int Get_Data_Length(const char* str)
 {
 	if (str == NULL) {
+		printf("str == NULL");
 		return -1;
 	}
 
