@@ -80,7 +80,11 @@ int request(char url[1024], char data[1024 * 1024])
 	string host = "push2his.eastmoney.com";
 	unsigned short port = 443;
 	hostent* ip = gethostbyname(host.c_str());
-
+	if (ip==nullptr)
+	{
+		cout << "get ip error 1";
+		return -1;
+	}
 	sockaddr_in sin;
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(port);

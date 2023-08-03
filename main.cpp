@@ -5,19 +5,21 @@
 #include"Get_Data.h"
 
 int GetsNumOfInteger(int num);//获取整数位数
+int findAverageValueMax(class Kline arr[], int size);
+int findAverageValueMin(class Kline arr[], int size);
 int Judging_Trends(class Kline* kLine, int Data_Length);
-int Judge_rising_wave(class Kline* kLine, int Data_Length, class rising_wave* rising);
-void ReleaseLinkedList(class rising_wave* head);
+int Judge_wave(class Kline* kLine, int Data_Length, class wave* wave);
+void ReleaseLinkedList(class wave* head);
 #pragma warning(disable:4996)
 
-class rising_wave
+class wave
 {
 public:
 	int MaxLocation;//储存最大值的位置
 	int MinLocation;
 	int SubLowLocation;
-	class rising_wave* next;
-	rising_wave()
+	class wave* next;
+	wave()
 	{
 		MaxLocation = 0;
 		MinLocation = 0;
@@ -36,7 +38,7 @@ int main()
 		printf("内存分配失败");
 		return -1;
 	}
-	urlencode("115.SR401", 20060101, getCurrentDate(), 101, 1, url);
+	urlencode("114.m2309", 20220101, getCurrentDate(), 101, 1, url);
 	if (request(url, data) == -1) {
 		printf("request err\n");
 		free(data);
@@ -104,20 +106,20 @@ int findAverageValueMin(class Kline arr[], int size) {
 
 int Judging_Trends(class Kline* kLine, int Data_Length)
 {
-	class rising_wave* rising = (class rising_wave*)calloc(1, sizeof(class rising_wave));
-	if (Judge_rising_wave(kLine, Data_Length, rising) == 1)
+	class wave* wave = (class wave*)calloc(1, sizeof(class wave));
+	if (Judge_wave(kLine, Data_Length, wave) == 1)
 	{
-		ReleaseLinkedList(rising);
+		ReleaseLinkedList(wave);
 		return 1;
 	}
 	return 0;
 
 }
 
-int GetRising_waveLength(class rising_wave* rising)
+int GetWaveLength(class wave* wave)
 {
 	int count = 1;
-	class rising_wave* current = rising;
+	class wave* current = wave;
 	while (current->next != NULL)
 	{
 		current = current->next;
@@ -125,21 +127,27 @@ int GetRising_waveLength(class rising_wave* rising)
 	}
 	return count;
 }
-void PrintRising_wave(class Kline* kLine, class rising_wave* rising)
+void PrintWave(class Kline* kLine,class wave* wave,  bool risingWave)
 {
-	class rising_wave* current = rising;
-	printf("%d-%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day);
+	class wave* current = wave;
+	if(risingWave==true)
+		printf("%d-%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day);
+	else
+		printf("%d-%d\n", kLine[current->MaxLocation].day, kLine[current->MinLocation].day);
 	while (current->next != NULL)
 	{
 		current = current->next;
-		printf("%d-%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day);
+		if (risingWave == true)
+			printf("%d-%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day);
+		else
+			printf("%d-%d\n", kLine[current->MaxLocation].day, kLine[current->MinLocation].day);
 	}
 	return;
 }
-void ReleaseLinkedList(class rising_wave* head)
+void ReleaseLinkedList(class wave* head)
 {
-	rising_wave* current = head;
-	rising_wave* nextNode;
+	wave* current = head;
+	wave* nextNode;
 
 	while (current != NULL)
 	{
@@ -148,17 +156,17 @@ void ReleaseLinkedList(class rising_wave* head)
 		current = nextNode;
 	}
 }
-void insertAtEndRising_wave(class rising_wave* rising, int MaxLocation, int MinLocation) {
-	if (rising == NULL) {
-		printf("rising == NULL");
+void insertAtEndWave(class wave* wave, int MaxLocation, int MinLocation) {
+	if (wave == NULL) {
+		printf("wave == NULL");
 		return;
 	}
-	if (rising->MinLocation==0)
+	if (wave->MinLocation == 0)
 	{
-		rising->MaxLocation = MaxLocation;
-		rising->MinLocation = MinLocation;
+		wave->MaxLocation = MaxLocation;
+		wave->MinLocation = MinLocation;
 	}
-	class rising_wave* current = rising;
+	class wave* current = wave;
 	while (current->next != NULL)
 	{
 		current = current->next;
@@ -171,7 +179,7 @@ void insertAtEndRising_wave(class rising_wave* rising, int MaxLocation, int MinL
 		current->MaxLocation = MaxLocation;
 		return;
 	}
-	current->next = (class rising_wave*)calloc(1, sizeof(class rising_wave));
+	current->next = (class wave*)calloc(1, sizeof(class wave));
 	if (current->next == NULL)
 	{
 		printf("current->next == NULL");
@@ -180,40 +188,54 @@ void insertAtEndRising_wave(class rising_wave* rising, int MaxLocation, int MinL
 	current->next->MaxLocation = MaxLocation;
 	current->next->MinLocation = MinLocation;
 }
-int Judge_Double_Repo(class Kline* kLine, int Data_Length, class rising_wave* rising)
+int Judge_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave,bool RisingWave)
 {
-	class rising_wave* current = rising;
+	class wave* current = wave;
 	int sign = 0;
-	int Rising_waveLength = GetRising_waveLength(rising);
+	int WaveLength = GetWaveLength(wave);
 
-	for (int i = 0; i < Rising_waveLength; i++)
+	for (int i = 0; i < WaveLength; i++)
 	{
-		for (int j = current->MaxLocation; j < current->MaxLocation + 30 && j < Data_Length; j++)
+		sign = 0;
+		if (RisingWave == true)
 		{
-			if (kLine[j].end < kLine[j].MA3_3 && sign == 0)
-				sign = 1;
-			if (kLine[j].end > kLine[j].MA3_3 && sign == 1)
-				sign = 2;
-			if (kLine[j].end < kLine[j].MA3_3 && sign >= 2) {
-				sign++;
+			int temp = kLine[current->MaxLocation].end;
+			for (int j = current->MaxLocation; j < current->MaxLocation + 30 && j < Data_Length; j++)
+			{
+				if (kLine[j].end < kLine[j].MA3_3 && sign == 0 && kLine[j].end > temp) {
+					temp = kLine[j].end;
+					sign = 1;
+				}
+				else if (kLine[j].end < kLine[j].MA3_3 && sign == 0 && kLine[j].end < temp)
+					temp = kLine[j].end;
+				if (kLine[j].end > kLine[j].MA3_3 && sign == 1 && kLine[j].end < temp) {
+					temp = kLine[j].end;
+					sign = 2;
+				}
+				else if (kLine[j].end > kLine[j].MA3_3 && sign == 1 && kLine[j].end > temp)
+					temp = kLine[j].end;
+				if (kLine[j].end < kLine[j].MA3_3 && sign >= 2) {
+					sign++;
+				}
 			}
-		}
-		if (sign <= 3) {
-			printf("%d-%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day);
-			return 1;
-		}
-		else
-		{
-			printf("none\n");
+			if (sign <= 3) {
+				printf("%d-%d\t%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day,sign);
+				
+			}
+			else
+				printf("none\n");
 		}
 		current = current->next;
 	}
 	return 0;
 }
-int Judge_rising_wave(class Kline* kLine, int Data_Length, class rising_wave* rising)
+int Judge_wave(class Kline* kLine, int Data_Length, class wave* wave)
 {
 	int count = 0;
-	int num = 0;
+	int temp = 0;
+	int temp1 = 0;
+	int drop = 0;
+	int drop_sum = 0;
 	for (int i = 0; i < Data_Length; i++)
 	{
 		printf("%d\t%lf\t%lf\n", kLine[i].day, kLine[i].macd.MACD, kLine[i].macd.SignalLine);
@@ -221,33 +243,39 @@ int Judge_rising_wave(class Kline* kLine, int Data_Length, class rising_wave* ri
 	for (int i = 0; i < Data_Length; i++)
 	{
 		if (kLine[i].macd.MACD < kLine[i].macd.SignalLine)
-			num = i;
-		if (kLine[i].macd.MACD > kLine[i].macd.SignalLine) {
-			if(i-1==num)
+			temp = i;
+		if (kLine[i].macd.MACD >= kLine[i].macd.SignalLine) {
+			if(i-1==temp)
 				printf("%d\n", kLine[i].day);
 		}
-	}
-	for (int i = 0; i < Data_Length; i++)
-	{
+
 		if (kLine[i].macd.MACD > kLine[i].macd.SignalLine)
-			num = i;
-		if (kLine[i].macd.MACD < kLine[i].macd.SignalLine) {
-			if (i - 1 == num)
-				printf("50\t%d\n", kLine[i].day);
+			temp1 = i;
+		if (kLine[i].macd.MACD <= kLine[i].macd.SignalLine) {
+			if (i - 1 == temp1)
+				printf("\t%d\n", kLine[i].day);
 		}
 	}
 	for (int i = 7; i < Data_Length; i++)
 	{
 		if (kLine[i].end >= kLine[i].MA3_3)
 			count++;
-		else
-			count = 0;
-
-		if (count > 10)
-			insertAtEndRising_wave(rising, i, i - (count - 1));
+		else {
+			//在迅猛推进期间只允许1次收盘价低于MA3_3
+			if (count > 0) {
+				drop++;
+			}
+			if (drop == 2)
+			{
+				drop = 0;
+				count = 0;
+			}
+		}
+		if (count > 13)
+			insertAtEndWave(wave, i, i - (count - 1)-drop);
 	}
-	PrintRising_wave(kLine, rising);
-	if (Judge_Double_Repo(kLine, Data_Length, rising) == 1)
+	PrintWave(kLine, wave,true);
+	if (Judge_Double_Repo(kLine, Data_Length, wave,true) == 1)
 		return 1;
 	else
 		return 0;
