@@ -1,5 +1,7 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define GOLDEN_CROSS 1
+#define DEATH_CROSS 1
 #include <WINSOCK2.H> 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -181,7 +183,6 @@ void Get_Data(class Kline* kLine, int Data_Length, char* data)
 		sscanf_s(temp, "\" %d-%d-%d,%d,%d,%d,%d,%d,%ld,%lf,%lf,%d,%lf\",", &days[0], &days[1], &days[2], &kLine[H].first, &kLine[H].end, &kLine[H].max, &kLine[H].min, &kLine[H].vol, &kLine[H].terr, &kLine[H].aem, &kLine[H].swing, &kLine[H].rise, &kLine[H].turn);
 		temp = strstr(temp, "\",\"") + strlen("\",");
 		kLine[H].day = date(days);
-		kLine[H].averageValue = (kLine[H].max + kLine[H].min) / 2;
 	}
 	PerformDMA(kLine, Data_Length);
 	PreferredRandomIndicator(kLine, Data_Length);
@@ -198,10 +199,8 @@ void PreferredRandomIndicator(class Kline* kLine, int Data_Length)//计算首选随机
 		printf("temp == NULL");
 		return;
 	}
-	for (int i = 0; i < Data_Length; i++)
+	for (int i = N; i < Data_Length; i++)
 	{
-		if (i >= N)
-		{
 			int lowestLow = kLine[i - N].min;  // 假设数组的第一个元素是最小值
 			int highestHigh = kLine[i - N].max;
 			for (int j = (i - N) + 1; j <= i; ++j)
@@ -212,7 +211,6 @@ void PreferredRandomIndicator(class Kline* kLine, int Data_Length)//计算首选随机
 					highestHigh = kLine[j].max;
 			}
 			temp[i]= ((double)(kLine[i].end - lowestLow) / (double)(highestHigh - lowestLow)) * 100;
-		}
 	}
 
 	for (int i = 0; i < Data_Length; i++)
@@ -244,6 +242,31 @@ void CalculateMACD(class Kline* kLine, int Data_Length)//计算MACD
 		kLine[i].macd.EMA2 = kLine[i - 1].macd.EMA2 + 0.108 * (kLine[i].end - kLine[i - 1].macd.EMA2);
 		kLine[i].macd.MACD = kLine[i].macd.EMA1 - kLine[i].macd.EMA2;
 		kLine[i].macd.SignalLine = kLine[i - 1].macd.MACD + 0.199 * (kLine[i].macd.MACD - kLine[i - 1].macd.MACD);
+	}
+	for (int i = 1; i < Data_Length; i++)
+	{
+		printf("%d\t%lf\t%lf\n",kLine[i].day, kLine[i].macd.MACD, kLine[i].macd.SignalLine);
+	}
+	int temp = 0;
+	for (int i = 0; i < Data_Length; i++)
+	{
+		temp = 0;
+		if (kLine[i].macd.MACD < kLine[i].macd.SignalLine)
+			temp = i;
+		if (kLine[i].macd.MACD >= kLine[i].macd.SignalLine) {
+			if (i - 1 == temp)
+				kLine[i].macd.PenetrateSignal = GOLDEN_CROSS;
+		}
+	}
+	for (int i = 0; i < Data_Length; i++)
+	{
+		temp = 0;
+		if (kLine[i].macd.MACD > kLine[i].macd.SignalLine)
+			temp = i;
+		if (kLine[i].macd.MACD <= kLine[i].macd.SignalLine) {
+			if (i - 1 == temp)
+				kLine[i].macd.PenetrateSignal = DEATH_CROSS;
+		}
 	}
 }
 void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线

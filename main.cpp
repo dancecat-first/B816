@@ -5,8 +5,8 @@
 #include"Get_Data.h"
 
 int GetsNumOfInteger(int num);//获取整数位数
-int findAverageValueMax(class Kline arr[], int size);
-int findAverageValueMin(class Kline arr[], int size);
+int findkLineMax(class Kline arr[], int size);
+int findkLineMin(class Kline arr[], int size);
 int Judging_Trends(class Kline* kLine, int Data_Length);
 int Judge_wave(class Kline* kLine, int Data_Length, class wave* wave);
 void ReleaseLinkedList(class wave* head);
@@ -38,7 +38,7 @@ int main()
 		printf("内存分配失败");
 		return -1;
 	}
-	urlencode("114.m2309", 20220101, getCurrentDate(), 101, 1, url);
+	urlencode("115.SR401", 20000101, getCurrentDate(), 101, 1, url);
 	if (request(url, data) == -1) {
 		printf("request err\n");
 		free(data);
@@ -77,30 +77,30 @@ int Slope(int x1, int y1, int x2, int y2)
 	return (y1 - y2) / (x2 - x1);
 }
 
-int findAverageValueMax(class Kline arr[], int size) {
-	int max = arr[0].averageValue; // 假设数组的第一个元素是最大值
-	int MaxOrdinalNumber = 0;
+int findkLineMax(class Kline arr[], int size) {
+	int max = arr[0].max; // 假设数组的第一个元素是最大值
+	int MaxNumber = 0;
 	for (int i = 1; i < size; i++) {
-		if (arr[i].averageValue > max) {
-			max = arr[i].averageValue; // 如果当前元素大于当前最大值，则更新最大值
-			MaxOrdinalNumber = i;
+		if (arr[i].max> max) {
+			max = arr[i].max; // 如果当前元素大于当前最大值，则更新最大值
+			MaxNumber = i;
 		}
 	}
 
-	return MaxOrdinalNumber;
+	return MaxNumber;
 }
 
-int findAverageValueMin(class Kline arr[], int size) {
-	int min = arr[0].averageValue; // 假设数组的第一个元素是最小值
-	int MinOrdinalNumber = 0;
+int findkLineMin(class Kline arr[], int size) {
+	int min = arr[0].min; // 假设数组的第一个元素是最小值
+	int MinNumber = 0;
 	for (int i = 1; i < size; i++) {
-		if (arr[i].averageValue < min) {
-			min = arr[i].averageValue; // 如果当前元素小于当前最小值，则更新最小值
-			MinOrdinalNumber = i;
+		if (arr[i].min < min) {
+			min = arr[i].min; // 如果当前元素小于当前最小值，则更新最小值
+			MinNumber = i;
 		}
 	}
 
-	return MinOrdinalNumber;
+	return MinNumber;
 }
 
 
@@ -191,40 +191,43 @@ void insertAtEndWave(class wave* wave, int MaxLocation, int MinLocation) {
 int Judge_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave,bool RisingWave)
 {
 	class wave* current = wave;
-	int sign = 0;
+	char sign = 0;
 	int WaveLength = GetWaveLength(wave);
-
+	int FibonacciLevels = 0;
 	for (int i = 0; i < WaveLength; i++)
 	{
 		sign = 0;
-		if (RisingWave == true)
+		int temp = kLine[current->MaxLocation].min;
+		for (int j = current->MaxLocation; j < current->MaxLocation + 30 && j < Data_Length; j++)
 		{
-			int temp = kLine[current->MaxLocation].end;
-			for (int j = current->MaxLocation; j < current->MaxLocation + 30 && j < Data_Length; j++)
-			{
-				if (kLine[j].end < kLine[j].MA3_3 && sign == 0 && kLine[j].end > temp) {
-					temp = kLine[j].end;
-					sign = 1;
-				}
-				else if (kLine[j].end < kLine[j].MA3_3 && sign == 0 && kLine[j].end < temp)
-					temp = kLine[j].end;
-				if (kLine[j].end > kLine[j].MA3_3 && sign == 1 && kLine[j].end < temp) {
-					temp = kLine[j].end;
-					sign = 2;
-				}
-				else if (kLine[j].end > kLine[j].MA3_3 && sign == 1 && kLine[j].end > temp)
-					temp = kLine[j].end;
-				if (kLine[j].end < kLine[j].MA3_3 && sign >= 2) {
-					sign++;
-				}
+			
+			if (kLine[j].end < kLine[j].MA3_3 && sign == 0 && kLine[j].min > temp) {
+				sign = 1;
 			}
-			if (sign <= 3) {
-				printf("%d-%d\t%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day,sign);
-				
+
+			if (kLine[j].end > kLine[j].MA3_3 && sign == 1 && kLine[j].max < temp) {
+				sign = 2;
+				int MaxLocation = findkLineMax(&kLine[current->MinLocation], current->MaxLocation - current->MinLocation);
+				FibonacciLevels = (int)((kLine[MaxLocation + current->MinLocation].max - temp) * 0.618 + temp);
 			}
+
+			if (kLine[j].max > FibonacciLevels && sign > 1) {
+				sign = -1;
+				break;
+			}
+			if(sign==0)
+				temp = kLine[j].min;
 			else
-				printf("none\n");
+				temp = kLine[j].max;
+			if (kLine[j].end < kLine[j].MA3_3 && sign >= 2) {
+				sign++;
+			}
 		}
+		if (sign <= 3)
+			printf("%d-%d\t%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day, sign);
+		else
+			printf("%d-%d\tnone\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day);
+
 		current = current->next;
 	}
 	return 0;
@@ -232,39 +235,17 @@ int Judge_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave,bool
 int Judge_wave(class Kline* kLine, int Data_Length, class wave* wave)
 {
 	int count = 0;
-	int temp = 0;
-	int temp1 = 0;
 	int drop = 0;
-	int drop_sum = 0;
-	for (int i = 0; i < Data_Length; i++)
-	{
-		printf("%d\t%lf\t%lf\n", kLine[i].day, kLine[i].macd.MACD, kLine[i].macd.SignalLine);
-	}
-	for (int i = 0; i < Data_Length; i++)
-	{
-		if (kLine[i].macd.MACD < kLine[i].macd.SignalLine)
-			temp = i;
-		if (kLine[i].macd.MACD >= kLine[i].macd.SignalLine) {
-			if(i-1==temp)
-				printf("%d\n", kLine[i].day);
-		}
-
-		if (kLine[i].macd.MACD > kLine[i].macd.SignalLine)
-			temp1 = i;
-		if (kLine[i].macd.MACD <= kLine[i].macd.SignalLine) {
-			if (i - 1 == temp1)
-				printf("\t%d\n", kLine[i].day);
-		}
-	}
+	
 	for (int i = 7; i < Data_Length; i++)
 	{
 		if (kLine[i].end >= kLine[i].MA3_3)
 			count++;
 		else {
 			//在迅猛推进期间只允许1次收盘价低于MA3_3
-			if (count > 0) {
+			if (count > 0) 
 				drop++;
-			}
+
 			if (drop == 2)
 			{
 				drop = 0;

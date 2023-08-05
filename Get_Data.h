@@ -1,4 +1,3 @@
-#pragma once
 #ifndef GET_DATA_H
 #define	GET_DATA_H
 struct MACD
@@ -7,6 +6,7 @@ struct MACD
 	double EMA2;
 	double MACD;
 	double SignalLine;
+	unsigned char PenetrateSignal;
 };
 struct RandomIndicator
 {
@@ -21,7 +21,6 @@ public:
 	int end;     //收盘
 	int max;     //最高
 	int min;     //最低
-	int averageValue;//最高最低平均值
 	/*置换移动平均线*/
 	int MA3_3;
 	int MA7_5;
