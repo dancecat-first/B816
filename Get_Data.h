@@ -12,6 +12,7 @@ struct RandomIndicator
 {
 	double RandomIndicatorK;//首选随机指标K
 	double RandomIndicatorD;//首选随机指标D
+	unsigned char PenetrateSignal;//穿透信号
 };
 class Kline
 {

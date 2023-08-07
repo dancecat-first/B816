@@ -1,7 +1,7 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define GOLDEN_CROSS 1
-#define DEATH_CROSS 1
+#define DEATH_CROSS 2
 #include <WINSOCK2.H> 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -82,7 +82,7 @@ int request(char url[1024], char data[1024 * 1024])
 	string host = "push2his.eastmoney.com";
 	unsigned short port = 443;
 	hostent* ip = gethostbyname(host.c_str());
-	if (ip==nullptr)
+	if (ip == nullptr)
 	{
 		cout << "get ip error 1";
 		return -1;
@@ -144,7 +144,7 @@ int request(char url[1024], char data[1024 * 1024])
 	}
 	rec[start] = '\n';
 	rec[start + 1] = 0;
-	
+
 
 	//关闭SSL套接字 
 	SSL_shutdown(ssl);
@@ -152,19 +152,18 @@ int request(char url[1024], char data[1024 * 1024])
 	SSL_free(ssl);
 	//释放SSL会话环境 
 	SSL_CTX_free(ctx);
-
 	closesocket(client);
 	WSACleanup();
-	if (strlen(rec) > 359)
-	{
-		strncpy(data, strstr(rec, "\"klines\":[") + strlen("\"klines\":["), strlen(strstr(rec, "\"klines\":[") + strlen("\"klines\":[")) + 1);
-		data[1024 * 1024 - 1] = '\0';//避免出现没有为字符串“data”添加字符串零终止符
-		data[strlen(data) - 4] = '\0';
-	}
-	else {
+
+	if (strlen(rec) < 360){
 		free(rec);//释放内存
 		return -1;
 	}
+
+	strncpy(data, strstr(rec, "\"klines\":[") + strlen("\"klines\":["), strlen(strstr(rec, "\"klines\":[") + strlen("\"klines\":[")) + 1);
+	data[1024 * 1024 - 1] = '\0';//避免出现没有为字符串“data”添加字符串零终止符
+	data[strlen(data) - 4] = '\0';
+
 	free(rec);//释放内存
 	return 0;
 }
@@ -195,6 +194,7 @@ void PreferredRandomIndicator(class Kline* kLine, int Data_Length)//计算首选随机
 {
 	const int N = 8;
 	double* temp = (double*)calloc(Data_Length, sizeof(double));
+	int TEMP = 0;
 	if (temp == NULL) {
 		printf("temp == NULL");
 		return;
@@ -213,21 +213,42 @@ void PreferredRandomIndicator(class Kline* kLine, int Data_Length)//计算首选随机
 			temp[i]= ((double)(kLine[i].end - lowestLow) / (double)(highestHigh - lowestLow)) * 100;
 	}
 
-	for (int i = 0; i < Data_Length; i++)
+	for (int i = N + 2; i < Data_Length; i++)
 	{
-		if (i == N + 3)
-			kLine[i].KD.RandomIndicatorK = (temp[i] + temp[i - 1] + temp[i - 2]) / 3;
-		else if (i > N + 3)
+		if (i > N + 2)
 			kLine[i].KD.RandomIndicatorK = kLine[i - 1].KD.RandomIndicatorK + (temp[i] - kLine[i - 1].KD.RandomIndicatorK) / 3;
+		else
+			kLine[i].KD.RandomIndicatorK = (temp[i] + temp[i - 1] + temp[i - 2]) / 3;
 	}
-	for (int i = 0; i < Data_Length; i++)
+	for (int i = N + 4; i < Data_Length; i++)
 	{
-		if (i == N + 6)
-			kLine[i].KD.RandomIndicatorD = (kLine[i].KD.RandomIndicatorK + kLine[i-1].KD.RandomIndicatorK + kLine[i-2].KD.RandomIndicatorK) / 3;
-		else if (i > N + 6)
+		if (i > N + 4)
 			kLine[i].KD.RandomIndicatorD = kLine[i - 1].KD.RandomIndicatorD + (kLine[i].KD.RandomIndicatorK - kLine[i - 1].KD.RandomIndicatorD) / 3;
+		else
+			kLine[i].KD.RandomIndicatorD = (kLine[i].KD.RandomIndicatorK + kLine[i - 1].KD.RandomIndicatorK + kLine[i - 2].KD.RandomIndicatorK) / 3;
 	}
 	free(temp);
+
+	for (int i = 0; i < Data_Length; i++)
+	{
+		if (kLine[i].KD.RandomIndicatorK < kLine[i].KD.RandomIndicatorD)
+			TEMP = i;
+		if (kLine[i].KD.RandomIndicatorK >= kLine[i].KD.RandomIndicatorD) {
+			if (i - 1 == TEMP)
+				kLine[i].KD.PenetrateSignal = GOLDEN_CROSS;
+		}
+	}
+	TEMP = 0;
+	for (int i = 0; i < Data_Length; i++)
+	{
+		if (kLine[i].KD.RandomIndicatorK > kLine[i].KD.RandomIndicatorD)
+			TEMP = i;
+		if (kLine[i].KD.RandomIndicatorK <= kLine[i].KD.RandomIndicatorD) {
+			if (i - 1 == TEMP)
+				kLine[i].KD.PenetrateSignal = DEATH_CROSS;
+		}
+	}
+	return;
 }
 
 void CalculateMACD(class Kline* kLine, int Data_Length)//计算MACD
@@ -243,14 +264,10 @@ void CalculateMACD(class Kline* kLine, int Data_Length)//计算MACD
 		kLine[i].macd.MACD = kLine[i].macd.EMA1 - kLine[i].macd.EMA2;
 		kLine[i].macd.SignalLine = kLine[i - 1].macd.MACD + 0.199 * (kLine[i].macd.MACD - kLine[i - 1].macd.MACD);
 	}
-	for (int i = 1; i < Data_Length; i++)
-	{
-		printf("%d\t%lf\t%lf\n",kLine[i].day, kLine[i].macd.MACD, kLine[i].macd.SignalLine);
-	}
+
 	int temp = 0;
 	for (int i = 0; i < Data_Length; i++)
 	{
-		temp = 0;
 		if (kLine[i].macd.MACD < kLine[i].macd.SignalLine)
 			temp = i;
 		if (kLine[i].macd.MACD >= kLine[i].macd.SignalLine) {
@@ -258,9 +275,9 @@ void CalculateMACD(class Kline* kLine, int Data_Length)//计算MACD
 				kLine[i].macd.PenetrateSignal = GOLDEN_CROSS;
 		}
 	}
+	temp = 0;
 	for (int i = 0; i < Data_Length; i++)
 	{
-		temp = 0;
 		if (kLine[i].macd.MACD > kLine[i].macd.SignalLine)
 			temp = i;
 		if (kLine[i].macd.MACD <= kLine[i].macd.SignalLine) {
@@ -268,6 +285,11 @@ void CalculateMACD(class Kline* kLine, int Data_Length)//计算MACD
 				kLine[i].macd.PenetrateSignal = DEATH_CROSS;
 		}
 	}
+	/*for (int i = 1; i < Data_Length; i++)
+	{
+		if(kLine[i].macd.PenetrateSignal!=0)
+			printf("%d\t%d\n", kLine[i].day,kLine[i].macd.PenetrateSignal);
+	}*/
 }
 void PerformDMA(class Kline* kLine, int Data_Length)//计算置换移动平均线
 {

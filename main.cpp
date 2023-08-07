@@ -38,7 +38,7 @@ int main()
 		printf("ƒ⁄¥Ê∑÷≈‰ ß∞‹");
 		return -1;
 	}
-	urlencode("115.SR401", 20000101, getCurrentDate(), 101, 1, url);
+	urlencode("115.SR309", 20000101, getCurrentDate(), 101, 1, url);
 	if (request(url, data) == -1) {
 		printf("request err\n");
 		free(data);
@@ -194,36 +194,43 @@ int Judge_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave,bool
 	char sign = 0;
 	int WaveLength = GetWaveLength(wave);
 	int FibonacciLevels = 0;
+	
 	for (int i = 0; i < WaveLength; i++)
 	{
+		int num = 0;
 		sign = 0;
-		int temp = kLine[current->MaxLocation].min;
-		for (int j = current->MaxLocation; j < current->MaxLocation + 30 && j < Data_Length; j++)
+		int temp = 0;
+		int MaxLocation = findkLineMax(&kLine[current->MinLocation], current->MaxLocation - current->MinLocation);
+		for (int j = current->MaxLocation; j < current->MaxLocation + 13 && j < Data_Length; j++)
 		{
-			
-			if (kLine[j].end < kLine[j].MA3_3 && sign == 0 && kLine[j].min > temp) {
+			if (kLine[j].end < kLine[j].MA3_3 && sign == 0) {
+				num = j;
 				sign = 1;
 			}
 
-			if (kLine[j].end > kLine[j].MA3_3 && sign == 1 && kLine[j].max < temp) {
+			if (kLine[j].end > kLine[j].MA3_3 && sign == 1) {
+				int MinLocation = findkLineMin(&kLine[num], j - num);
+				FibonacciLevels = (int)((kLine[MaxLocation + current->MinLocation].max - kLine[MinLocation + num].min) * 0.618 + kLine[MinLocation + num].min);
 				sign = 2;
-				int MaxLocation = findkLineMax(&kLine[current->MinLocation], current->MaxLocation - current->MinLocation);
-				FibonacciLevels = (int)((kLine[MaxLocation + current->MinLocation].max - temp) * 0.618 + temp);
 			}
 
-			if (kLine[j].max > FibonacciLevels && sign > 1) {
-				sign = -1;
+			if (kLine[j].end < kLine[j].MA3_3 && sign == 2) {
+				sign = 3;
+				temp = j;
 				break;
 			}
-			if(sign==0)
-				temp = kLine[j].min;
-			else
-				temp = kLine[j].max;
-			if (kLine[j].end < kLine[j].MA3_3 && sign >= 2) {
-				sign++;
+		}
+		if (sign == 3)
+		{
+			for (int k = temp; k < temp + 10; k++)
+			{
+				if (kLine[k].max > FibonacciLevels) {
+					sign = -1;
+					break;
+				}
 			}
 		}
-		if (sign <= 3)
+		if (sign == 3)
 			printf("%d-%d\t%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day, sign);
 		else
 			printf("%d-%d\tnone\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day);
