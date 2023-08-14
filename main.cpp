@@ -8,7 +8,7 @@ int GetsNumOfInteger(int num);//获取整数位数
 int findkLineMax(class Kline arr[], int size);
 int findkLineMin(class Kline arr[], int size);
 int Judging_Trends(class Kline* kLine, int Data_Length);
-int Judge_wave(class Kline* kLine, int Data_Length, class wave* wave);
+int Judge_wave(class Kline* kLine, int Data_Length);
 void ReleaseLinkedList(class wave* head);
 #pragma warning(disable:4996)
 
@@ -38,7 +38,7 @@ int main()
 		printf("内存分配失败");
 		return -1;
 	}
-	urlencode("115.SR309", 20000101, getCurrentDate(), 101, 1, url);
+	urlencode("114.y2309", 20000101, getCurrentDate(), 101, 1, url);
 	if (request(url, data) == -1) {
 		printf("request err\n");
 		free(data);
@@ -106,10 +106,9 @@ int findkLineMin(class Kline arr[], int size) {
 
 int Judging_Trends(class Kline* kLine, int Data_Length)
 {
-	class wave* wave = (class wave*)calloc(1, sizeof(class wave));
-	if (Judge_wave(kLine, Data_Length, wave) == 1)
+	if (Judge_wave(kLine, Data_Length) == 1)
 	{
-		ReleaseLinkedList(wave);
+		
 		return 1;
 	}
 	return 0;
@@ -191,14 +190,13 @@ void insertAtEndWave(class wave* wave, int MaxLocation, int MinLocation) {
 int Judge_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave,bool RisingWave)
 {
 	class wave* current = wave;
-	char sign = 0;
 	int WaveLength = GetWaveLength(wave);
 	int FibonacciLevels = 0;
 	
 	for (int i = 0; i < WaveLength; i++)
 	{
 		int num = 0;
-		sign = 0;
+		char sign = 0;
 		int temp = 0;
 		int MaxLocation = findkLineMax(&kLine[current->MinLocation], current->MaxLocation - current->MinLocation);
 		for (int j = current->MaxLocation; j < current->MaxLocation + 13 && j < Data_Length; j++)
@@ -239,34 +237,56 @@ int Judge_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave,bool
 	}
 	return 0;
 }
-int Judge_wave(class Kline* kLine, int Data_Length, class wave* wave)
+int Judge_wave(class Kline* kLine, int Data_Length)
 {
 	int count = 0;
 	int drop = 0;
-	
+	wave* rising_wave = (wave*)calloc(1, sizeof(wave));
+	wave* drop_wave = (wave*)calloc(1, sizeof(wave));
 	for (int i = 7; i < Data_Length; i++)
 	{
 		if (kLine[i].end >= kLine[i].MA3_3)
 			count++;
 		else {
 			//在迅猛推进期间只允许1次收盘价低于MA3_3
-			if (count > 0) 
+			if (count > 0)
 				drop++;
 
-			if (drop == 2)
-			{
+			if (drop == 2) {
 				drop = 0;
 				count = 0;
 			}
 		}
 		if (count > 13)
-			insertAtEndWave(wave, i, i - (count - 1)-drop);
+			insertAtEndWave(rising_wave, i, i - (count - 1)-drop);
 	}
-	PrintWave(kLine, wave,true);
-	if (Judge_Double_Repo(kLine, Data_Length, wave,true) == 1)
+	PrintWave(kLine, rising_wave,true);
+	if (Judge_Double_Repo(kLine, Data_Length, rising_wave, true) == 1)
+	{
+		ReleaseLinkedList(rising_wave);
 		return 1;
-	else
+	}
+	else {
+		ReleaseLinkedList(rising_wave);
 		return 0;
+	}
+	//for (int i = 7; i < Data_Length; i++)
+	//{
+	//	if (kLine[i].end <= kLine[i].MA3_3)
+	//		count++;
+	//	else {
+	//		//在迅猛推进期间只允许1次收盘价低于MA3_3
+	//		if (count > 0)
+	//			drop++;
+
+	//		if (drop == 2) {
+	//			drop = 0;
+	//			count = 0;
+	//		}
+	//	}
+	//	if (count > 13)
+	//		insertAtEndWave(drop_wave, i - (count - 1) - drop, i);
+	//}
 }
 int GetsNumOfInteger(int num)
 {
