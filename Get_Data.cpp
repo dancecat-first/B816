@@ -1,7 +1,5 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#define GOLDEN_CROSS 1
-#define DEATH_CROSS 2
 #include <WINSOCK2.H> 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -16,6 +14,9 @@
 #include <time.h>
 #include"Get_Data.h"
 #include"Data.h"
+
+#define GOLDEN_CROSS 1
+#define DEATH_CROSS 2
 
 #define BUFF_SIZE 1024
 #pragma warning(disable : 4075)

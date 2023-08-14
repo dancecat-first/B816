@@ -70,13 +70,13 @@ void ReleaseLinkedList(class wave* head)
 		current = nextNode;
 	}
 }
-void insertAtEndWave(class wave* wave, int MaxLocation, int MinLocation) 
+void insertAtEndWave(class wave* wave, int MaxLocation, int MinLocation,bool rise) 
 {
 	if (wave == NULL) {
 		printf("wave == NULL");
 		return;
 	}
-	if (wave->MinLocation == 0)
+	if (wave->MinLocation == 0&& wave->MaxLocation==0)
 	{
 		wave->MaxLocation = MaxLocation;
 		wave->MinLocation = MinLocation;
@@ -85,13 +85,23 @@ void insertAtEndWave(class wave* wave, int MaxLocation, int MinLocation)
 	while (current->next != NULL)
 	{
 		current = current->next;
-		if (current->MinLocation == MinLocation) {
+		if (current->MinLocation == MinLocation&&rise==true) {
 			current->MaxLocation = MaxLocation;
+			return;
+		}
+		else if (current->MaxLocation == MaxLocation && rise == false)
+		{
+			current->MinLocation = MinLocation;
 			return;
 		}
 	}
 	if (current->MinLocation == MinLocation) {
 		current->MaxLocation = MaxLocation;
+		return;
+	}
+	else if (current->MaxLocation == MaxLocation && rise == false)
+	{
+		current->MinLocation = MinLocation;
 		return;
 	}
 	current->next = (class wave*)calloc(1, sizeof(class wave));
@@ -115,7 +125,7 @@ int Judge_Drop_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave
 		char sign = 0;
 		int temp = 0;
 		int MinLocation = findkLineMin(&kLine[current->MaxLocation], current->MinLocation - current->MaxLocation) + current->MaxLocation;
-		for (int j = current->MaxLocation; j < current->MaxLocation + 13 && j < Data_Length; j++)
+		for (int j = current->MinLocation; j < current->MinLocation + 13 && j < Data_Length; j++)
 		{
 			if (kLine[j].end > kLine[j].MA3_3 && sign == 0) {
 				num = j;
@@ -145,9 +155,9 @@ int Judge_Drop_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave
 			}
 		}
 		if (sign == 3)
-			printf("%d-%d\t%d\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day, sign);
+			printf("%d-%d\t%d\n", kLine[current->MaxLocation].day, kLine[current->MinLocation].day, sign);
 		else
-			printf("%d-%d\t%d\tnone\n", kLine[current->MinLocation].day, kLine[current->MaxLocation].day, sign);
+			printf("%d-%d\t%d\tnone\n", kLine[current->MaxLocation].day, kLine[current->MinLocation].day, sign);
 
 		current = current->next;
 	}
@@ -225,7 +235,7 @@ BOOL Judge_wave(class Kline* kLine, int Data_Length)
 			}
 		}
 		if (count > 13)
-			insertAtEndWave(rising_wave, i, i - (count - 1) - drop);
+			insertAtEndWave(rising_wave, i, i - (count - 1) - drop, true);
 	}
 	PrintWave(kLine, rising_wave, true);
 	if (Judge_Rise_Double_Repo(kLine, Data_Length, rising_wave) == 1)
@@ -252,17 +262,17 @@ BOOL Judge_wave(class Kline* kLine, int Data_Length)
 			}
 		}
 		if (count > 13)
-			insertAtEndWave(drop_wave, i - (count - 1) - drop, i);
+			insertAtEndWave(drop_wave, i - (count - 1) - drop, i, false);
 	}
-	PrintWave(kLine, drop_wave, true);
+	PrintWave(kLine, drop_wave, false);
 	if (Judge_Drop_Double_Repo(kLine, Data_Length, drop_wave) == 1)
 	{
 		ReleaseLinkedList(drop_wave);
-		return TRUE;
+		return (returnValue || TRUE);
 	}
 	else {
 		ReleaseLinkedList(drop_wave);
-		return (returnValue||FALSE);
+		return (returnValue || FALSE);
 	}
 	return -1;
 }
