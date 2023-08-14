@@ -21,9 +21,18 @@
     <ClCompile Include="Get_Data.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Double_Repo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Get_Data.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Double_Repo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Data.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

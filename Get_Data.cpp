@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include"Get_Data.h"
-
+#include"Data.h"
 
 #define BUFF_SIZE 1024
 #pragma warning(disable : 4075)
