@@ -118,7 +118,7 @@ int Judge_Drop_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave
 	class wave* current = wave;
 	int WaveLength = GetWaveLength(wave);
 	int FibonacciLevels = 0;
-
+	puts("drop:");
 	for (int i = 0; i < WaveLength; i++)
 	{
 		int num = 0;
@@ -168,7 +168,7 @@ int Judge_Rise_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave
 	class wave* current = wave;
 	int WaveLength = GetWaveLength(wave);
 	int FibonacciLevels = 0;
-
+	puts("rise:");
 	for (int i = 0; i < WaveLength; i++)
 	{
 		int num = 0;
@@ -237,16 +237,9 @@ BOOL Judge_wave(class Kline* kLine, int Data_Length)
 		if (count > 13)
 			insertAtEndWave(rising_wave, i, i - (count - 1) - drop, true);
 	}
-	PrintWave(kLine, rising_wave, true);
-	if (Judge_Rise_Double_Repo(kLine, Data_Length, rising_wave) == 1)
-	{
-		ReleaseLinkedList(rising_wave);
-		returnValue = TRUE;
-	}
-	else {
-		ReleaseLinkedList(rising_wave);
-		returnValue = FALSE;
-	}
+	//PrintWave(kLine, rising_wave, true);
+	returnValue = Judge_Rise_Double_Repo(kLine, Data_Length, rising_wave);
+	ReleaseLinkedList(rising_wave);
 	for (int i = 7; i < Data_Length; i++)
 	{
 		if (kLine[i].end <= kLine[i].MA3_3)
@@ -264,7 +257,7 @@ BOOL Judge_wave(class Kline* kLine, int Data_Length)
 		if (count > 13)
 			insertAtEndWave(drop_wave, i - (count - 1) - drop, i, false);
 	}
-	PrintWave(kLine, drop_wave, false);
+	//PrintWave(kLine, drop_wave, false);
 	if (Judge_Drop_Double_Repo(kLine, Data_Length, drop_wave) == 1)
 	{
 		ReleaseLinkedList(drop_wave);

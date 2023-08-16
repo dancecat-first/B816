@@ -64,7 +64,7 @@ int request(char url[1024], char data[1024 * 1024])
 	if (ctx == NULL)
 	{
 		ERR_print_errors_fp(stderr);
-		cout << "SSL_CTX_new error !";
+		cout << "SSL_CTX_new error !\n";
 		return -1;
 	}
 
@@ -76,7 +76,7 @@ int request(char url[1024], char data[1024 * 1024])
 	SOCKET client = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (client == INVALID_SOCKET)
 	{
-		cout << "socket error !";
+		cout << "socket error !\n";
 		return -1;
 	}
 
@@ -85,7 +85,7 @@ int request(char url[1024], char data[1024 * 1024])
 	hostent* ip = gethostbyname(host.c_str());
 	if (ip == nullptr)
 	{
-		cout << "get ip error 1";
+		cout << "get ip error 1\n";
 		return -1;
 	}
 	sockaddr_in sin;
@@ -95,7 +95,7 @@ int request(char url[1024], char data[1024 * 1024])
 
 	if (connect(client, (sockaddr*)&sin, sizeof(sin)) == SOCKET_ERROR)
 	{
-		cout << "connect error 1";
+		cout << "connect error 1\n";
 		return -1;
 	}
 
@@ -113,7 +113,7 @@ int request(char url[1024], char data[1024 * 1024])
 	ret = SSL_connect(ssl);
 	if (ret == -1)
 	{
-		cout << "SSL ACCEPT error ";
+		cout << "SSL ACCEPT error\n";
 		return -1;
 	}
 
@@ -132,7 +132,7 @@ int request(char url[1024], char data[1024 * 1024])
 	ret = SSL_write(ssl, sendData, (int)strlen(sendData));
 	if (ret == -1)
 	{
-		cout << "SSL write error !";
+		cout << "SSL write error !\n";
 		return -1;
 	}
 	char* rec = (char*)calloc(1024 * 1024, sizeof(char));

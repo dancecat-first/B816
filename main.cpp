@@ -24,7 +24,7 @@ int main()
 		printf("内存分配失败");
 		return -1;
 	}
-	urlencode("114.y2309", 20000101, getCurrentDate(), 101, 1, url);
+	urlencode("115.RM309", 20000101, getCurrentDate(), 101, 1, url);
 	if (request(url, data) == -1) {
 		printf("request err\n");
 		free(data);
@@ -49,9 +49,7 @@ int main()
 	free(kLine);
 
 	clock_t end_time = clock();  // 记录结束时间
-
 	double total_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;  // 计算运行时长，单位为秒
-
 	printf("程序运行时长: %.2f 秒\n", total_time);
 
 	return 0;
