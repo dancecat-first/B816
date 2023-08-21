@@ -1,6 +1,5 @@
 #ifndef GET_DATA_H
 #define	GET_DATA_H
-
 void urlencode(const char* secid, int beg, int end, const int klt, const int fqt, char url[1024]);
 int request(char url[1024], char data[1024 * 1024]);
 int date(int date[3]); //用于转换时间格式

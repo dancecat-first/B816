@@ -24,6 +24,9 @@
     <ClCompile Include="Double_Repo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Bread_and_Butter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Get_Data.h">

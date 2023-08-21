@@ -7,11 +7,7 @@
 #include"Data.h"
 
 int GetsNumOfInteger(int num);//获取整数位数
-int findkLineMax(class Kline arr[], int size);
-int findkLineMin(class Kline arr[], int size);
 int Judging_Trends(class Kline* kLine, int Data_Length);
-int Judge_wave(class Kline* kLine, int Data_Length);
-void ReleaseLinkedList(class wave* head);
 #pragma warning(disable:4996)
 
 int main()
@@ -63,7 +59,7 @@ int Slope(int x1, int y1, int x2, int y2)
 
 int Judging_Trends(class Kline* kLine, int Data_Length)
 {
-	if (Judge_wave(kLine, Data_Length) == 1)
+	if (Judge_wave(kLine, Data_Length) == true)
 	{
 		return 1;
 	}

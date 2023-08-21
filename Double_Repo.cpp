@@ -213,11 +213,15 @@ int Judge_Rise_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave
 	}
 	return 0;
 }
-BOOL Judge_wave(class Kline* kLine, int Data_Length)
+void Judge_Bread_and_Butter()
+{
+
+}
+bool Judge_wave(class Kline* kLine, int Data_Length)
 {
 	int count = 0;
 	int drop = 0;
-	BOOL returnValue = FALSE;
+	bool returnValue = false;
 	wave* rising_wave = (wave*)calloc(1, sizeof(wave));
 	wave* drop_wave = (wave*)calloc(1, sizeof(wave));
 	for (int i = 7; i < Data_Length; i++)
@@ -261,11 +265,11 @@ BOOL Judge_wave(class Kline* kLine, int Data_Length)
 	if (Judge_Drop_Double_Repo(kLine, Data_Length, drop_wave) == 1)
 	{
 		ReleaseLinkedList(drop_wave);
-		return (returnValue || TRUE);
+		return (returnValue || true);
 	}
 	else {
 		ReleaseLinkedList(drop_wave);
-		return (returnValue || FALSE);
+		return (returnValue || false);
 	}
-	return -1;
+	return false;
 }
