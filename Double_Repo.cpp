@@ -213,9 +213,16 @@ int Judge_Rise_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave
 	}
 	return 0;
 }
-void Judge_Bread_and_Butter()
+void Judge_Bread_and_Butter(class Kline* kLine, int Data_Length, class wave* wave)
 {
-
+	class wave* current = wave;
+	int WaveLength = GetWaveLength(wave);
+	float* AdmissionPoint = (float*)calloc(WaveLength, sizeof(float));
+	for (int i = 0; i < WaveLength; i++)
+	{
+		AdmissionPoint[i] = (current->MaxLocation - current->MinLocation) * 0.618 + current->MinLocation;
+		current = current->next;
+	}
 }
 bool Judge_wave(class Kline* kLine, int Data_Length)
 {
