@@ -217,20 +217,38 @@ void Judge_Bread_and_Butter(class Kline* kLine, int Data_Length, class wave* wav
 {
 	class wave* current = wave;
 	int WaveLength = GetWaveLength(wave);
-	float* AdmissionPoint = (float*)calloc(WaveLength, sizeof(float));
+	float* ProfitPoint = (float*)calloc(WaveLength, sizeof(float));
+	if (ProfitPoint == NULL) {
+		puts("ProfitPoint==null");
+		return;
+	}
 	for (int i = 0; i < WaveLength; i++)
 	{
-		AdmissionPoint[i] = (current->MaxLocation - current->MinLocation) * 0.618 + current->MinLocation;
+		int sign = 0;
+		for (int j = current->MaxLocation; j < current->MaxLocation + 5 && j < Data_Length; j++)
+		{
+			if (kLine[j].end < kLine[j].MA3_3 && sign == 0) {
+				sign = 1;
+			}
+		}
+		if (sign == 1)
+			ProfitPoint[i] = (float)((current->MaxLocation - current->MinLocation) * 0.618 + current->MinLocation);
+		else
+			ProfitPoint[i] = 0;
+
 		current = current->next;
 	}
 }
 bool Judge_wave(class Kline* kLine, int Data_Length)
 {
+	return Judge_Rise_wave(kLine, Data_Length) || Judge_Drop_wave(kLine, Data_Length);
+}
+
+bool Judge_Rise_wave(class Kline* kLine, int Data_Length)
+{
 	int count = 0;
 	int drop = 0;
-	bool returnValue = false;
 	wave* rising_wave = (wave*)calloc(1, sizeof(wave));
-	wave* drop_wave = (wave*)calloc(1, sizeof(wave));
 	for (int i = 7; i < Data_Length; i++)
 	{
 		if (kLine[i].end >= kLine[i].MA3_3)
@@ -249,8 +267,16 @@ bool Judge_wave(class Kline* kLine, int Data_Length)
 			insertAtEndWave(rising_wave, i, i - (count - 1) - drop, true);
 	}
 	//PrintWave(kLine, rising_wave, true);
-	returnValue = Judge_Rise_Double_Repo(kLine, Data_Length, rising_wave);
+	bool returnValue = Judge_Rise_Double_Repo(kLine, Data_Length, rising_wave);
 	ReleaseLinkedList(rising_wave);
+	return returnValue;
+}
+
+bool Judge_Drop_wave(class Kline* kLine, int Data_Length)
+{
+	int count = 0;
+	int drop = 0;
+	wave* drop_wave = (wave*)calloc(1, sizeof(wave));
 	for (int i = 7; i < Data_Length; i++)
 	{
 		if (kLine[i].end <= kLine[i].MA3_3)
@@ -269,14 +295,7 @@ bool Judge_wave(class Kline* kLine, int Data_Length)
 			insertAtEndWave(drop_wave, i - (count - 1) - drop, i, false);
 	}
 	//PrintWave(kLine, drop_wave, false);
-	if (Judge_Drop_Double_Repo(kLine, Data_Length, drop_wave) == 1)
-	{
-		ReleaseLinkedList(drop_wave);
-		return (returnValue || true);
-	}
-	else {
-		ReleaseLinkedList(drop_wave);
-		return (returnValue || false);
-	}
-	return false;
+	bool returnValue = Judge_Drop_Double_Repo(kLine, Data_Length, drop_wave);
+	ReleaseLinkedList(drop_wave);
+	return returnValue;
 }

@@ -41,13 +41,11 @@ class wave
 public:
 	int MaxLocation;//储存最大值的位置
 	int MinLocation;
-	int SubLowLocation;
 	class wave* next;
 	wave()
 	{
 		MaxLocation = 0;
 		MinLocation = 0;
-		SubLowLocation = 0;
 		next = NULL;
 	}
 };

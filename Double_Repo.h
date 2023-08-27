@@ -10,4 +10,6 @@ void insertAtEndWave(class wave* wave, int MaxLocation, int MinLocation, bool ri
 int Judge_Drop_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave);//ÅÐ¶ÏË«ÖØ´©Í¸
 int Judge_Rise_Double_Repo(class Kline* kLine, int Data_Length, class wave* wave);//ÅÐ¶ÏË«ÖØ´©Í¸
 bool Judge_wave(class Kline* kLine, int Data_Length);
+bool Judge_Drop_wave(class Kline* kLine, int Data_Length);
+bool Judge_Rise_wave(class Kline* kLine, int Data_Length);
 #endif // DOUBLE_REPO_H
